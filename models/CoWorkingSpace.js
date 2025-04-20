@@ -1,49 +1,43 @@
 const mongoose = require("mongoose");
 
-// The schema for CoWorkingSpace
 const CoWorkingSpaceSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, "Please add a name"],
     unique: true,
     trim: true,
-    maxlength: [50, "Name can not be more than 50 characters"],
+    maxlength: [50, "Name cannot be more than 50 characters"],
   },
   address: {
     type: String,
     required: [true, "Please add an address"],
   },
-  district: {
-    type: String,
-    required: [true, "Please add a district"],
-  },
-  province: {
-    type: String,
-    required: [true, "Please add a province"],
-  },
-  postalcode: {
-    type: String,
-    required: [true, "Please add a postal code"],
-    maxlength: [5, "Postal Code can not be more than 5 digits"],
-  },
   tel: {
     type: String,
+    required: [true, "Please add a telephone number"],
+    match: [/^\d{9,10}$/, "Please enter a valid phone number"],
   },
-  region: {
+  openTime: {
     type: String,
-    required: [true, "Please add a region"],
+    required: [true, "Please add opening time"],
+    match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"]
   },
+  closeTime: {
+    type: String,
+    required: [true, "Please add closing time"],
+    match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"]
+  }
 }, {
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
 });
 
-// Reverse populate with virtuals (e.g.
+// Example virtual populate for bookings
 CoWorkingSpaceSchema.virtual('appointments', {
   ref: 'Appointment',
   localField: '_id',
-  foreignField: 'coworkingSpace', // Adjust this field name in Booking schema
-  justOne: false,
+  foreignField: 'coworkingSpace',
+  justOne: false
 });
 
 module.exports = mongoose.model("CoWorkingSpace", CoWorkingSpaceSchema);
