@@ -1,5 +1,6 @@
 const User = require("../models/User");
-
+const getOAuth2Client = require('../utils/googleAuthClient');
+const { google } = require('googleapis');
 //@desc     Register user
 //@route    POST /api/v1/auth/register
 //@access   Public
@@ -44,7 +45,6 @@ exports.addTelephone = async (req, res) => {
 //@access   Public
 exports.login = async (req, res, next) => {
   const { email, password } = req.body;
-
   // Validate email & password
   if (!email || !password) {
     return res
@@ -65,7 +65,6 @@ exports.login = async (req, res, next) => {
   if (!isMatch) {
     return res.status(401).json({ success: false, msg: "Invalid credentials" });
   }
-
   // Create token
   //const token = user.getSignedJwtToken();
   //res.status(200).json({success:true, token})
@@ -123,4 +122,67 @@ exports.getMe = async (req, res, next) => {
     success: true,
     data: user,
   });
+};
+
+// @desc     Redirect user to Google for authentication
+// @route    GET /api/v1/auth/google/auth
+// @access   Public
+exports.googleAuth = (req, res) => {
+  const oAuth2Client = getOAuth2Client();
+
+  const scopes = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/calendar'
+  ];
+
+  const url = oAuth2Client.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: scopes
+  });
+
+  res.redirect(url);
+};
+
+// @desc     Handle Google OAuth callback and login/register user
+// @route    GET /api/v1/auth/google/callback
+// @access   Public
+exports.googleCallback = async (req, res) => {
+  const code = req.query.code;
+
+  try {
+    const oAuth2Client = getOAuth2Client();
+    const { tokens } = await oAuth2Client.getToken(code);
+    oAuth2Client.setCredentials(tokens);
+
+    const oauth2 = google.oauth2({
+      auth: oAuth2Client,
+      version: 'v2'
+    });
+
+    const { data } = await oauth2.userinfo.get();
+    const { email, name } = data;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name: name || 'Unnamed User',
+        email,
+        role: 'user',
+        authProvider: 'google',
+        refreshToken: tokens.refresh_token
+      });
+    } else if (tokens.refresh_token) {
+      user.refreshToken = tokens.refresh_token;
+      await user.save();
+    }
+
+    sendTokenResponse(user, 200, res);
+
+  } catch (error) {
+    console.error('Google OAuth error:', error.message);
+    res.status(500).json({ success: false, message: 'Google login failed' });
+  }
 };
