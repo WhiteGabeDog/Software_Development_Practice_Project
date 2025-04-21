@@ -10,6 +10,7 @@ const auth = require('./routes/auth');
 const coworkingSpace = require('./routes/coworkingspace');
 const appointments = require('./routes/appointments');
 const googleAuth = require('./routes/googleAuth');
+const adminRoutes = require('./routes/admin');
 
 //Connect to database
 connectDB();
@@ -22,6 +23,7 @@ app.use('/api/v1/auth',auth);
 app.use('/api/v1/coworkingspaces',coworkingSpace);
 app.use('/api/v1/appointments',appointments);
 app.use('/api/v1/google', googleAuth);
+app.use('/api/v1/admin', adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(
