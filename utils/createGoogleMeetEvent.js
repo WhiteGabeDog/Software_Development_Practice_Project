@@ -1,13 +1,9 @@
-const oAuth2Client = require('./googleAuthClient');
+const getOAuth2Client = require('../utils/googleAuthClient');
 const { google } = require('googleapis');
 
 const createGoogleMeetEvent = async ({ summary, description, start, end, refreshToken }) => {
   try {
-    const oAuth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
-    );
+    const oAuth2Client = getOAuth2Client();
 
     oAuth2Client.setCredentials({ refresh_token: refreshToken });
 
@@ -32,7 +28,7 @@ const createGoogleMeetEvent = async ({ summary, description, start, end, refresh
 
     return event.data;
   } catch (error) {
-    console.error('❌ Google Meet error:', error.response?.data || error.message);
+    console.error('Google Meet error:', error.response?.data || error.message);
     return null;
   }
 };
