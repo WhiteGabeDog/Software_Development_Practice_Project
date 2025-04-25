@@ -93,18 +93,6 @@ exports.addAppointment = async (req, res, next) => {
 
     req.body.user = req.user.id;
 
-    const sameUserSameDate = await Appointment.findOne({
-      user: req.user.id,
-      apptDate: req.body.apptDate,
-    });
-
-    if (sameUserSameDate && req.user.role !== "admin") {
-      return res.status(400).json({
-        success: false,
-        message: "You already have an appointment on this date.",
-      });
-    }
-
     const sameSpaceSameDate = await Appointment.findOne({
       coworkingSpace: req.body.coworkingSpace,
       apptDate: req.body.apptDate,
