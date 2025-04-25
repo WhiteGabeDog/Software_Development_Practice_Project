@@ -125,7 +125,7 @@ exports.getMe = async (req, res, next) => {
 };
 
 // @desc     Redirect user to Google for authentication
-// @route    GET /api/v1/auth/google/auth
+// @route    GET /api/v1/auth/google/login
 // @access   Public
 exports.googleAuth = (req, res) => {
   const oAuth2Client = getOAuth2Client();

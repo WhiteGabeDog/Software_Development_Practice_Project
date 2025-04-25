@@ -10,7 +10,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.get('/me', protect, getMe);
 router.get('/logout', logout);
-router.get('/google/auth', googleAuth);
+router.get('/google/login', googleAuth);
 router.get('/google/callback', googleCallback);
 
 module.exports = router;
