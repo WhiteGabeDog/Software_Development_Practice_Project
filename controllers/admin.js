@@ -2,6 +2,7 @@
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const { google } = require('googleapis');
+const getOAuth2Client = require('../utils/googleAuthClient');
 
 exports.emergencyCancel = async (req, res) => {
   try {
@@ -16,11 +17,7 @@ exports.emergencyCancel = async (req, res) => {
 
       // Remove from Google Calendar if user is connected
       if (appt.googleEventId && user.refreshToken) {
-        const oAuth2Client = new google.auth.OAuth2(
-          process.env.GOOGLE_CLIENT_ID,
-          process.env.GOOGLE_CLIENT_SECRET,
-          process.env.GOOGLE_REDIRECT_URI
-        );
+        const oAuth2Client = getOAuth2Client();
 
         oAuth2Client.setCredentials({ refresh_token: user.refreshToken });
 

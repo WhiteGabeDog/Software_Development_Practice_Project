@@ -3,6 +3,7 @@ const User = require("../models/User");
 const CoWorkingSpace = require("../models/CoWorkingSpace");
 const createGoogleMeetEvent = require("../utils/createGoogleMeetEvent");
 const { google } = require('googleapis');
+const getOAuth2Client = require("../utils/googleAuthClient");
 //@desc     Get all appointments
 //@route    GET /api/v1/appointments
 //@access   Public
@@ -143,7 +144,7 @@ exports.addAppointment = async (req, res, next) => {
 
     const appointment = await Appointment.create(req.body);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       data: appointment,
     });
@@ -186,12 +187,7 @@ exports.updateAppointment = async (req, res, next) => {
 
     // If user connected Google + event exists, update event
     if (user.refreshToken && appointment.googleEventId) {
-      const oAuth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        process.env.GOOGLE_REDIRECT_URI
-      );
-
+      const oAuth2Client = getOAuth2Client();
       oAuth2Client.setCredentials({ refresh_token: user.refreshToken });
       const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
       const start = new Date(`${req.body.apptDate}T${coworkingSpace.openTime}:00`).toISOString();
@@ -253,12 +249,7 @@ exports.deleteAppointment = async (req, res, next) => {
     const user = await User.findById(req.user.id);
 
     if (user.refreshToken && appointment.googleEventId) {
-      const oAuth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        process.env.GOOGLE_REDIRECT_URI
-      );
-
+      const oAuth2Client = getOAuth2Client();
       oAuth2Client.setCredentials({ refresh_token: user.refreshToken });
 
       const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
